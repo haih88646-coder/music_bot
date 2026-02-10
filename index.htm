@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MelodyAI | AI Music Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #0ea5e9;
+            --accent: #ec4899;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gray-light: #cbd5e1;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--light);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-outline:hover {
+            background: var(--glass);
+            border-color: var(--primary);
+        }
+
+        /* Main Layout */
+        .app-title {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--gray-light);
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 992px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Generation Panel */
+        .panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-light);
+        }
+
+        .prompt-input {
+            width: 100%;
+            padding: 1.25rem;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            color: var(--light);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            min-height: 120px;
+            transition: var(--transition);
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .prompt-example {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .style-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .style-btn {
+            padding: 0.6rem 1.2rem;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            color: var(--gray-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .style-btn:hover, .style-btn.active {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: transparent;
+        }
+
+        .slider-container {
+            margin-top: 0.75rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.7);
+            outline: none;
+            -webkit-appearance: none;
+             appearance: none;  /* Add this line */
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .slider-value {
+            text-align: right;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--gray-light);
+        }
+
+        /* Player Panel */
+        .player-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .waveform-container {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: var(--radius);
+            height: 180px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waveform-placeholder {
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .waveform-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .secondary-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .track-info {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .track-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .track-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Generation Animation */
+        .generation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .generation-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .generation-content {
+            text-align: center;
+            max-width: 500px;
+            padding: 3rem;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 2rem;
+        }
+
+        .loader:after {
+            content: " ";
+            display: block;
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border-radius: 50%;
+            border: 6px solid var(--primary);
+            border-color: var(--primary) transparent var(--primary) transparent;
+            animation: loader-animation 1.2s linear infinite;
+        }
+
+        @keyframes loader-animation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .generation-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .generation-subtext {
+            color: var(--gray-light);
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Audio Player */
+        #audio-player {
+            display: none;
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .status-message.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            color: #4ade80;
+            display: block;
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #f87171;
+            display: block;
+        }
+
+        .status-message.info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #60a5fa;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-title {
+                font-size: 2.2rem;
+            }
+            
+            .panel {
+                padding: 1.5rem;
+            }
+            
+            .player-controls {
+                gap: 1rem;
+            }
+            
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span>MelodyAI</span>
+            </div>
+            <button class="btn btn-outline" id="api-status-btn">
+                <i class="fas fa-plug"></i> API Status
+            </button>
+        </header>
+
+        <main>
+            <h1 class="app-title">AI Music Generator</h1>
+            <p class="subtitle">Create unique, high-quality music tracks from text descriptions. Powered by FastAPI backend.</p>
+
+            <!-- Status Messages -->
+            <div id="status-message" class="status-message"></div>
+
+            <div class="app-container">
+                <!-- Generation Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fas fa-magic"></i> Create Your Music</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="prompt">Describe your music</label>
+                        <textarea 
+                            id="prompt" 
+                            class="prompt-input" 
+                            placeholder="Example: A calm lo-fi hip-hop beat with soft piano, vinyl noise, slow tempo, night city mood"
+                        >A calm lo-fi hip-hop beat with soft piano, vinyl noise, slow tempo, night city mood</textarea>
+                        <div class="prompt-example">Be descriptive! Include instruments, mood, tempo, and style.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Music Style</label>
+                        <div class="style-buttons" id="style-buttons">
+                            <button class="style-btn active" data-value="lofi">Lo-Fi</button>
+                            <button class="style-btn" data-value="pop">Pop</button>
+                            <button class="style-btn" data-value="edm">EDM</button>
+                            <button class="style-btn" data-value="hiphop">Hip-Hop</button>
+                            <button class="style-btn" data-value="cinematic">Cinematic</button>
+                            <button class="style-btn" data-value="classical">Classical</button>
+                            <button class="style-btn" data-value="rock">Rock</button>
+                            <button class="style-btn" data-value="ambient">Ambient</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mood</label>
+                        <div class="style-buttons" id="mood-buttons">
+                            <button class="style-btn active" data-value="calm">Calm</button>
+                            <button class="style-btn" data-value="happy">Happy</button>
+                            <button class="style-btn" data-value="energetic">Energetic</button>
+                            <button class="style-btn" data-value="dark">Dark</button>
+                            <button class="style-btn" data-value="sad">Sad</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Duration: <span id="duration-value">30</span> seconds</label>
+                        <div class="slider-container">
+                            <input type="range" min="5" max="120" value="30" class="slider" id="duration-slider">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tempo</label>
+                        <div class="style-buttons" id="tempo-buttons">
+                            <button class="style-btn" data-value="slow">Slow</button>
+                            <button class="style-btn active" data-value="medium">Medium</button>
+                            <button class="style-btn" data-value="fast">Fast</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Instrument Focus</label>
+                        <div class="style-buttons" id="instrument-buttons">
+                            <button class="style-btn" data-value="piano">Piano</button>
+                            <button class="style-btn active" data-value="guitar">Guitar</button>
+                            <button class="style-btn" data-value="synth">Synth</button>
+                            <button class="style-btn" data-value="drums">Drums</button>
+                            <button class="style-btn" data-value="orchestral">Orchestral</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="generate-btn" style="width: 100%; padding: 1.2rem; font-size: 1.1rem;">
+                        <i class="fas fa-bolt"></i> Generate Music
+                    </button>
+                </div>
+
+                <!-- Player Panel -->
+                <div class="panel player-container">
+                    <h2 class="panel-title"><i class="fas fa-play-circle"></i> Your Track</h2>
+                    
+                    <div class="waveform-container" id="waveform-container">
+                        <div class="waveform-placeholder" id="waveform-placeholder">
+                            <i class="fas fa-music"></i>
+                            <p>Your generated track will appear here</p>
+                            <p class="prompt-example">Click "Generate Music" to create your first track</p>
+                        </div>
+                    </div>
+
+                    <audio id="audio-player" controls></audio>
+
+                    <div class="player-controls">
+                        <button class="control-btn" id="play-btn">
+                            <i class="fas fa-play" id="play-icon"></i>
+                        </button>
+                    </div>
+
+                    <div class="secondary-controls">
+                        <button class="btn btn-outline" id="regenerate-btn">
+                            <i class="fas fa-redo"></i> Regenerate
+                        </button>
+                        <button class="btn btn-outline" id="download-btn">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+
+                    <div class="track-info">
+                        <div class="track-title" id="track-title">Lo-Fi Night City</div>
+                        <div class="track-meta">
+                            <span id="track-style">Style: Lo-Fi Hip-Hop</span>
+                            <span id="track-duration">Duration: 30s</span>
+                        </div>
+                        <div class="track-meta">
+                            <span id="track-mood">Mood: Calm</span>
+                            <span id="track-tempo">Tempo: Medium</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Generation Overlay -->
+        <div class="generation-overlay" id="generation-overlay">
+            <div class="generation-content">
+                <div class="loader"></div>
+                <div class="generation-text" id="generation-text">Generating Your Music...</div>
+                <div class="generation-subtext" id="generation-subtext">
+                    Our AI is composing a unique track based on your description. 
+                    This usually takes 15-30 seconds. Thank you for your patience!
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>AI Music Generator • FastAPI Backend • High-quality instrumental music</p>
+            <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
+                <span>Backend: <span id="backend-url">http://localhost:8000</span></span>
+                <span>Status: <span id="api-status" style="color: #4ade80;">Connected</span></span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // DOM Elements
+        const promptInput = document.getElementById('prompt');
+        const durationSlider = document.getElementById('duration-slider');
+        const durationValue = document.getElementById('duration-value');
+        const generateBtn = document.getElementById('generate-btn');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const regenerateBtn = document.getElementById('regenerate-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const generationOverlay = document.getElementById('generation-overlay');
+        const generationText = document.getElementById('generation-text');
+        const generationSubtext = document.getElementById('generation-subtext');
+        const audioPlayer = document.getElementById('audio-player');
+        const statusMessage = document.getElementById('status-message');
+        const apiStatusBtn = document.getElementById('api-status-btn');
+        const apiStatusSpan = document.getElementById('api-status');
+        const backendUrlSpan = document.getElementById('backend-url');
+        
+        // State
+        let currentTrack = null;
+        let isPlaying = false;
+        let currentAudio = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            backendUrlSpan.textContent = API_BASE_URL;
+            checkApiStatus();
+            setupEventListeners();
+        });
+        
+        // Setup all event listeners
+        function setupEventListeners() {
+            // Duration slider
+            durationSlider.addEventListener('input', function() {
+                durationValue.textContent = this.value;
+            });
+            
+            // Style buttons selection
+            document.querySelectorAll('.style-buttons').forEach(buttonGroup => {
+                buttonGroup.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('style-btn')) {
+                        buttonGroup.querySelectorAll('.style-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        e.target.classList.add('active');
+                    }
+                });
+            });
+            
+            // Generate button
+            generateBtn.addEventListener('click', generateMusic);
+            
+            // Play button
+            playBtn.addEventListener('click', togglePlayback);
+            
+            // Regenerate button
+            regenerateBtn.addEventListener('click', () => {
+                if (!promptInput.value.trim()) {
+                    showStatus('Please enter a music description first', 'error');
+                    return;
+                }
+                generateMusic();
+            });
+            
+            // Download button
+            downloadBtn.addEventListener('click', downloadTrack);
+            
+            // API status button
+            apiStatusBtn.addEventListener('click', checkApiStatus);
+            
+            // Audio player events
+            audioPlayer.addEventListener('play', () => {
+                isPlaying = true;
+                playIcon.className = 'fas fa-pause';
+            });
+            
+            audioPlayer.addEventListener('pause', () => {
+                isPlaying = false;
+                playIcon.className = 'fas fa-play';
+            });
+            
+            audioPlayer.addEventListener('ended', () => {
+                isPlaying = false;
+                playIcon.className = 'fas fa-play';
+            });
+            
+            // Example prompt selector
+            promptInput.addEventListener('focus', () => {
+                if (promptInput.value === promptInput.placeholder) {
+                    promptInput.value = '';
+                }
+            });
+            
+            promptInput.addEventListener('blur', () => {
+                if (promptInput.value === '') {
+                    promptInput.value = promptInput.placeholder;
+                }
+            });
+        }
+        
+        // Check API status
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    apiStatusSpan.textContent = 'Connected';
+                    apiStatusSpan.style.color = '#4ade80';
+                    showStatus('Backend API is connected and ready', 'success');
+                } else {
+                    throw new Error('API not responding properly');
+                }
+            } catch (error) {
+                apiStatusSpan.textContent = 'Disconnected';
+                apiStatusSpan.style.color = '#f87171';
+                showStatus(`Cannot connect to backend API. Make sure FastAPI is running at ${API_BASE_URL}`, 'error');
+                console.error('API connection error:', error);
+            }
+        }
+        
+        // Generate music
+        async function generateMusic() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                showStatus('Please enter a music description', 'error');
+                return;
+            }
+            
+            // Get selected parameters
+            const style = document.querySelector('#style-buttons .style-btn.active').dataset.value;
+            const mood = document.querySelector('#mood-buttons .style-btn.active').dataset.value;
+            const tempo = document.querySelector('#tempo-buttons .style-btn.active').dataset.value;
+            const instrument = document.querySelector('#instrument-buttons .style-btn.active').dataset.value;
+            const duration = parseInt(durationSlider.value);
+            
+            // Show loading overlay
+            generationText.textContent = 'Generating Your Music...';
+            generationSubtext.textContent = 'Our AI is composing a unique track based on your description. This usually takes 15-30 seconds.';
+            generationOverlay.classList.add('active');
+            
+            // Prepare request data
+            const requestData = {
+                prompt: prompt,
+                style: style,
+                mood: mood,
+                tempo: tempo,
+                instrument: instrument,
+                duration: duration
+            };
+            
+            try {
+                // Call FastAPI backend
+                const response = await fetch(`${API_BASE_URL}/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Hide loading overlay
+                generationOverlay.classList.remove('active');
+                
+                if (data.success) {
+                    // Update UI with generated track
+                    currentTrack = data;
+                    updatePlayerUI(data);
+                    
+                    // Set audio player source
+                    if (data.audio_base64) {
+                        // If audio is returned as base64
+                        audioPlayer.src = `data:audio/wav;base64,${data.audio_base64}`;
+                    } else if (data.audio_url) {
+                        // If audio URL is provided
+                        audioPlayer.src = `${API_BASE_URL}${data.audio_url}`;
+                    }
+                    
+                    showStatus('Music generated successfully!', 'success');
+                } else {
+                    showStatus(`Generation failed: ${data.error || 'Unknown error'}`, 'error');
+                }
+                
+            } catch (error) {
+                generationOverlay.classList.remove('active');
+                showStatus(`Error generating music: ${error.message}`, 'error');
+                console.error('Generation error:', error);
+                
+                // Fallback to mock data if API fails
+                fallbackToMockData(requestData);
+            }
+        }
+        
+        // Fallback to mock data if API is not available
+        function fallbackToMockData(requestData) {
+            showStatus('Using mock data (API not available). Install FastAPI backend for real generation.', 'info');
+            
+            // Create mock response
+            const mockTrack = {
+                success: true,
+                title: requestData.prompt.substring(0, 30) + (requestData.prompt.length > 30 ? '...' : ''),
+                style: requestData.style.charAt(0).toUpperCase() + requestData.style.slice(1),
+                mood: requestData.mood.charAt(0).toUpperCase() + requestData.mood.slice(1),
+                tempo: requestData.tempo.charAt(0).toUpperCase() + requestData.tempo.slice(1),
+                instrument: requestData.instrument.charAt(0).toUpperCase() + requestData.instrument.slice(1),
+                duration: requestData.duration,
+                audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' // Sample audio
+            };
+            
+            currentTrack = mockTrack;
+            updatePlayerUI(mockTrack);
+            audioPlayer.src = mockTrack.audio_url;
+        }
+        
+        // Update player UI with track info
+        function updatePlayerUI(trackData) {
+            document.getElementById('track-title').textContent = trackData.title || 'Generated Track';
+            document.getElementById('track-style').textContent = `Style: ${trackData.style}`;
+            document.getElementById('track-duration').textContent = `Duration: ${trackData.duration}s`;
+            document.getElementById('track-mood').textContent = `Mood: ${trackData.mood}`;
+            document.getElementById('track-tempo').textContent = `Tempo: ${trackData.tempo}`;
+            
+            // Update waveform display
+            const waveformContainer = document.getElementById('waveform-container');
+            waveformContainer.innerHTML = `
+                <div class="waveform-placeholder" style="color: var(--primary);">
+                    <i class="fas fa-wave-square" style="font-size: 4rem;"></i>
+                    <p>${trackData.title || 'Generated Track'}</p>
+                    <p class="prompt-example">Ready to play! Duration: ${trackData.duration}s</p>
+                </div>
+            `;
+        }
+        
+        // Toggle audio playback
+        function togglePlayback() {
+            if (!currentTrack) {
+                showStatus('Generate a track first!', 'error');
+                return;
+            }
+            
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        }
+        
+        // Download track
+        function downloadTrack() {
+            if (!currentTrack) {
+                showStatus('Generate a track first!', 'error');
+                return;
+            }
+            
+            if (currentTrack.audio_base64) {
+                // Download base64 audio
+                const link = document.createElement('a');
+                link.href = `data:audio/wav;base64,${currentTrack.audio_base64}`;
+                link.download = `melodyai-${Date.now()}.wav`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showStatus('Track downloaded successfully!', 'success');
+            } else if (audioPlayer.src) {
+                // Download from audio source
+                const link = document.createElement('a');
+                link.href = audioPlayer.src;
+                link.download = `melodyai-${Date.now()}.${audioPlayer.src.includes('.mp3') ? 'mp3' : 'wav'}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showStatus('Track downloaded successfully!', 'success');
+            } else {
+                showStatus('No audio available for download', 'error');
+            }
+        }
+        
+        // Show status message
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.className = 'status-message';
+                }, 5000);
+            }
+        }
+        
+        // Add some example prompts for quick testing
+        const examplePrompts = [
+            "Upbeat synthwave track with driving bassline and retro arpeggios",
+            "Epic cinematic orchestral music with brass and strings, dramatic mood",
+            "Chill ambient track with ethereal pads and subtle nature sounds",
+            "Energetic rock music with electric guitar solo and powerful drums",
+            "Jazzy piano trio with walking bass and brush drums, intimate club vibe"
+        ];
+        
+        // Add example prompt buttons (optional)
+        const promptContainer = document.querySelector('.form-group:first-child');
+        const examplePromptDiv = document.createElement('div');
+        examplePromptDiv.className = 'style-buttons';
+        examplePromptDiv.style.marginTop = '0.5rem';
+        examplePromptDiv.innerHTML = '<div class="prompt-example" style="margin-bottom: 0.5rem;">Try these examples:</div>';
+        
+        examplePrompts.slice(0, 3).forEach((prompt, index) => {
+            const button = document.createElement('button');
+            button.className = 'style-btn';
+            button.textContent = `Example ${index + 1}`;
+            button.title = prompt;
+            button.addEventListener('click', () => {
+                promptInput.value = prompt;
+                showStatus(`Loaded example: ${prompt.substring(0, 50)}...`, 'info');
+            });
+            examplePromptDiv.appendChild(button);
+        });
+        
+        promptContainer.appendChild(examplePromptDiv);
+    </script>
+</body>
+</html>
